@@ -44,6 +44,10 @@ coins = [
     pygame.Rect(400, HEIGHT - 350, 20, 20)
 ]
 
+# Enemy settings
+enemy = pygame.Rect(300, HEIGHT - 150, 50, 50)
+enemy_speed = 2
+enemy_direction = 1 # 1 for right, -1 for left
 
 # Game loop
 running = True
@@ -54,7 +58,7 @@ while running:
             pygame.quit()
             sys.exit()
 
-    # Movement
+    # Player Movement
     keys = pygame.key.get_pressed() # Get the state of all keys
     if keys[pygame.K_LEFT]:
         player_x -= player_speed
@@ -67,6 +71,11 @@ while running:
         player_x = 0
     elif player_x > WIDTH - player_width:
         player_x = WIDTH - player_width
+
+    # Enemy movement
+    enemy.x += enemy_speed * enemy_direction 
+    if enemy.x <= 0 or enemy.x >= WIDTH - enemy.width:
+        enemy_direction *= -1 # Reverse direction at screen edges
 
     # Apply gravity
     player_velocity_y += gravity
@@ -92,8 +101,9 @@ while running:
             coins.remove(coin) # Remove the coin when collected
             score += 1 # Increment score
 
-
-    
+    # Enemy collision with player
+    if player_rect.colliderect(enemy):
+        running = False
 
     # Fill the screen and draw the player
     screen.fill(WHITE)
@@ -109,6 +119,9 @@ while running:
     # Draw coins
     for coin in coins:
         pygame.draw.rect(screen, (255, 215, 0), coin) # Gold color
+
+    # Draw enemy
+    pygame.draw.rect(screen, (255, 0, 0), enemy) # Red color
     
     # Display score
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
