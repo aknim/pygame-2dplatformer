@@ -33,6 +33,18 @@ platforms = [
     pygame.Rect(300, HEIGHT - 300, 200, 10)
 ]
 
+# Scoring
+score = 0
+font = pygame.font.Font(None, 36) # Font for displaying score
+
+# Collectible coins (use pygame.Rect to define their positions)
+coins = [
+    pygame.Rect(250, HEIGHT - 150, 20, 20),
+    pygame.Rect(550, HEIGHT - 250, 20, 20),
+    pygame.Rect(400, HEIGHT - 350, 20, 20)
+]
+
+
 # Game loop
 running = True
 while running:
@@ -74,6 +86,13 @@ while running:
             player_velocity_y = 0
             is_jumping = False
 
+    # Coin collection
+    for coin in coins[:]: # Iterate over a copy of the list
+        if player_rect.colliderect(coin):
+            coins.remove(coin) # Remove the coin when collected
+            score += 1 # Increment score
+
+
     
 
     # Fill the screen and draw the player
@@ -86,6 +105,14 @@ while running:
     # Draw platforms
     for platform in platforms:
         pygame.draw.rect(screen, GREEN, platform)
+
+    # Draw coins
+    for coin in coins:
+        pygame.draw.rect(screen, (255, 215, 0), coin) # Gold color
+    
+    # Display score
+    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    screen.blit(score_text, (10, 10))
 
 
     pygame.display.flip()
