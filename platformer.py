@@ -18,11 +18,12 @@ GREEN = (0, 255, 0)
 player_color = (0, 0, 255) # Blue color
 player_width, player_height = 50, 50
 player_x, player_y = WIDTH // 2, HEIGHT - player_height - 50 # Start near bottom
-player_speed = 5
+player_speed = 1
 
 # Gravity settings
-gravity = 0.5
+gravity = 0.2
 player_velocity_y = 0
+jump_strength = -7 # Lower for smoother jumps
 is_jumping = False
 
 # Platform settings
@@ -48,7 +49,7 @@ while running:
     if keys[pygame.K_RIGHT]:
         player_x += player_speed
     if keys[pygame.K_UP] and not is_jumping: # Jump if not already jumping
-        player_velocity_y = -10 # Negative for upward movement
+        player_velocity_y = jump_strength # Negative for upward movement
         is_jumping = True
     if player_x < 0:
         player_x = 0
