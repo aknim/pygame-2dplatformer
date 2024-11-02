@@ -12,11 +12,16 @@ GREEN = (0, 255, 0)
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+invincibility_duration = 60 # Duration in frames
+player_lives = 3
+score = 0
+
 def reset():
     global WIDTH, HEIGHT, player_color, player_width, player_height
     global player_x, player_y, player_speed, gravity, player_velocity_y
     global jump_strength, is_jumping, score, font, platforms
     global game_over, coins, enemy, enemy_speed, enemy_direction
+    global player_health, player_lives, invincible, invincibility_timer
   
     # Screen settings  
     pygame.display.set_caption("2D Platformer")
@@ -26,6 +31,9 @@ def reset():
     player_width, player_height = 50, 50
     player_x, player_y = WIDTH // 2, HEIGHT - player_height - 50 # Start near bottom
     player_speed = 1
+    player_health = 100
+    invincible = False
+    invincibility_timer = 0
 
     # Gravity settings
     gravity = 0.2
@@ -41,7 +49,6 @@ def reset():
     ]
 
     # Scoring
-    score = 0
     font = pygame.font.Font(None, 36) # Font for displaying score
 
     game_over = False
@@ -115,9 +122,22 @@ while running:
                 score += 1 # Increment score
 
         # Enemy collision with player
-        if player_rect.colliderect(enemy):
-            game_over = True
-            print("doing game over")
+        if player_rect.colliderect(enemy) and not invincible:
+            player_health -= 20 # Decrease healthy by 20
+            invincible = True
+            invincibility_timer = invincibility_duration # start the invincibility timer
+            if player_health <= 0:
+                player_lives -= 1
+                player_health = 100 # Reset health
+                if player_lives <= 0:
+                   game_over = True
+                else:
+                    reset()
+
+        if invincible:
+            invincibility_timer -= 1
+            if invincibility_timer <= 0:
+                invincible = False # End invincibility after time reaches 0
 
         # Fill the screen and draw the player
         screen.fill(WHITE)
@@ -137,14 +157,16 @@ while running:
         # Draw enemy
         pygame.draw.rect(screen, (255, 0, 0), enemy) # Red color
         
-        # Display score
+        # Display score & health & lives
         score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+        health_text = font.render(f"Health: {player_health}", True, (0, 0, 0))
+        lives_text = font.render(f"Lives: {player_lives}", True, (0, 0, 0))
         screen.blit(score_text, (10, 10))
-
-
+        screen.blit(health_text, (10, 40))
+        screen.blit(lives_text, (10, 70))
         pygame.display.flip()
+
     else:
-        print("game over")
         screen.fill(WHITE)
         game_over_text = font.render("Game Over! Press R to Restart", True, (0, 0, 0))
         screen.blit(game_over_text, (WIDTH // 4, HEIGHT // 2))
