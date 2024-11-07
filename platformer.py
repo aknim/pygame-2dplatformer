@@ -8,6 +8,7 @@ pygame.init()
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
+ORANGE = (255, 165, 0)
 
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -15,6 +16,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 invincibility_duration = 60 # Duration in frames
 player_lives = 3
 score = 0
+player_on = None
 
 def reset():
     global WIDTH, HEIGHT, player_color, player_width, player_height
@@ -22,6 +24,7 @@ def reset():
     global jump_strength, is_jumping, score, font, platforms
     global game_over, coins, enemy, enemy_speed, enemy_direction
     global player_health, player_lives, invincible, invincibility_timer
+    global moving_platform, platform_speed, platform_direction
   
     # Screen settings  
     pygame.display.set_caption("2D Platformer")
@@ -47,6 +50,11 @@ def reset():
         pygame.Rect(500, HEIGHT - 200, 200, 10),
         pygame.Rect(300, HEIGHT - 300, 200, 10)
     ]
+
+    # Moving platform settings
+    moving_platform = pygame.Rect(100, HEIGHT - 400, 200, 10)
+    platform_speed = 2
+    platform_direction = 1
 
     # Scoring
     font = pygame.font.Font(None, 36) # Font for displaying score
@@ -87,6 +95,7 @@ while running:
         if keys[pygame.K_UP] and not is_jumping: # Jump if not already jumping
             player_velocity_y = jump_strength # Negative for upward movement
             is_jumping = True
+            player_on = None
         if player_x < 0:
             player_x = 0
         elif player_x > WIDTH - player_width:
@@ -101,6 +110,13 @@ while running:
         player_velocity_y += gravity
         player_y += player_velocity_y
 
+        # Move platform
+        moving_platform.x += platform_speed * platform_direction
+        if player_on == moving_platform:
+            player_x += platform_speed * platform_direction
+        if moving_platform.x <= 0 or moving_platform.x >= WIDTH - moving_platform.width:
+            platform_direction *= -1 # Reverse direction at boundaries
+
         # Ground collision
         if player_y >= HEIGHT - player_height - 50: # Stop at the bottom of the screen
             player_y = HEIGHT - player_height - 50
@@ -114,6 +130,15 @@ while running:
                 player_y = platform.y - player_height # Place on top of platform
                 player_velocity_y = 0
                 is_jumping = False
+                player_on = platform
+
+        # Moving platform collision
+        if player_rect.colliderect(moving_platform) and player_velocity_y > 0:
+            player_y = moving_platform.y - player_height
+            player_velocity_y = 0
+            is_jumping = False
+            player_on = moving_platform
+
 
         # Coin collection
         for coin in coins[:]: # Iterate over a copy of the list
@@ -149,6 +174,8 @@ while running:
         # Draw platforms
         for platform in platforms:
             pygame.draw.rect(screen, GREEN, platform)
+
+        pygame.draw.rect(screen, ORANGE, moving_platform)
 
         # Draw coins
         for coin in coins:
